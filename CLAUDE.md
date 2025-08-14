@@ -18,40 +18,37 @@ A Rust command-line tool for fetching stock prices (including Canadian ETFs) usi
 
 ### Key Dependencies
 ```toml
-tokio = { version = "1.47.1", features = ["full"] }  # Async runtime
-yahoo_finance_api = "2.4.0"                         # Yahoo Finance client
-dotenvy = "0.15.7"                                   # Environment variable loading (unused in main code)
+tokio = { version = "1.0", features = ["full"] }    # Async runtime
+yahoo_finance_api = "2.0"                           # Yahoo Finance client  
+dotenvy = "0.15"                                     # Environment variable loading (unused in main code)
 ```
 
 ## 📁 Project Structure
 
 ```
-stocks-values/
+stock-values/
 ├── src/
 │   └── main.rs              # Single-file application logic
 ├── .github/
 │   └── workflows/
 │       └── build.yml        # Windows CI/CD build pipeline
-├── dist/                    # Build output directory
-│   └── stocks-values.exe    # Compiled Windows binary
 ├── target/                  # Cargo build artifacts
 ├── Cargo.toml              # Project configuration and dependencies
 ├── Cargo.lock              # Dependency lock file
 ├── justfile                # Task runner commands
 ├── README.md               # User documentation
-├── .gitignore             # Git ignore patterns
-├── .env                   # Environment variables (contains FMP API key - unused)
-└── .env.example           # Environment template
+├── CLAUDE.md               # Claude Code guidance file
+└── .gitignore             # Git ignore patterns
 ```
 
 ## 🔧 Core Functionality
 
-### Main Application Flow (`/Users/juan/transit/stocks-values/src/main.rs`)
+### Main Application Flow (`/Users/juan/transit/stock-values/src/main.rs`)
 1. **Command Line Parsing**: Accepts comma-separated stock symbols as arguments
 2. **Yahoo Finance Connection**: Creates connector without requiring API keys
-3. **Concurrent Data Fetching**: Iterates through symbols, fetches latest quotes
+3. **Sequential Data Fetching**: Iterates through symbols, fetches latest quotes one by one
 4. **Error Handling**: Separates successful results from errors
-5. **Output Generation**: Prints errors to stderr, clean CSV to stdout
+5. **Output Generation**: Prints errors to stderr first, then CSV data to stdout
 
 ### Key Features
 - ✅ **Free API Access**: Uses Yahoo Finance without authentication
@@ -66,10 +63,11 @@ stocks-values/
 # Input
 ./stocks-values "AAPL,MSFT,SHOP.TO"
 
-# Errors to stderr (if any)
+# Errors to stderr (if any) 
 Error fetching INVALID: Invalid symbol
 
 # Output to stdout
+
 CSV data:
 
 Symbol,Price
@@ -80,19 +78,19 @@ SHOP.TO,85.32
 
 ## 🛠️ Development Workflow
 
-### Just Task Runner Commands (`/Users/juan/transit/stocks-values/justfile`)
+### Just Task Runner Commands (`/Users/juan/transit/stock-values/justfile`)
 ```bash
 # Core development commands
 just run "AAPL,MSFT"        # Run with symbols
 just check                  # Check code without building
 just clean                  # Clean build artifacts
-just help                   # Show all commands
+just help                   # Show all commands (just --list)
 
 # Cross-compilation
-just build-windows          # Docker-based Windows build
+just build-windows          # Docker-based Windows build using rust:1.85 container
 just package-windows        # Package Windows binary to dist/
 
-# Release management
+# Release management  
 just tag 1.0.0              # Tag version (triggers GitHub Actions)
 just github-status          # Show GitHub Actions URL
 ```
@@ -134,17 +132,18 @@ cargo clean                 # Clean build artifacts
 - **No custom linting**: No clippy.toml or rustfmt.toml detected
 
 ### Environment Configuration
-- **.env**: Contains `FMP_API_KEY` (appears unused in current implementation)
-- **.env.example**: Template for environment setup
-- **dotenvy dependency**: Loaded but not utilized in main application
+- **dotenvy dependency**: Included but not utilized in main application
+- No environment files detected in current codebase
 
 ### Git Configuration
 - **.gitignore**: Standard Rust patterns plus custom exclusions:
   - Build artifacts (`target/`, `debug/`)
-  - Environment files (`.env`)
   - IDE files (RustRover, JetBrains)
   - Distribution files (`dist/`)
   - Claude integration files (`.claude/`)
+  - Backup files (`**/*.rs.bk`)
+  - Windows debug files (`*.pdb`)
+  - Mutation testing data (`**/mutants.out*/`)
 
 ## 🔍 Code Quality & Patterns
 
@@ -163,7 +162,6 @@ cargo clean                 # Clean build artifacts
 6. **Concurrency**: Parallel API requests instead of sequential processing
 
 ### Security Considerations
-- **API Key Exposure**: `.env` file contains an API key (unused but present)
 - **Input Sanitization**: Basic symbol parsing without validation
 - **Network Security**: Relies on yahoo_finance_api crate for HTTPS
 
@@ -193,9 +191,9 @@ cargo build --release
 
 ### Performance Characteristics
 - **Memory**: Minimal heap usage, vector-based result collection
-- **Network**: Sequential API calls (room for parallelization)
+- **Network**: Sequential API calls (room for parallelization improvement)
 - **CPU**: Lightweight JSON parsing and CSV formatting
-- **Dependencies**: 54 total crates in dependency tree
+- **Dependencies**: Minimal dependency footprint with tokio and yahoo_finance_api
 
 ### Supported Markets
 - 🇺🇸 US: NYSE, NASDAQ (AAPL, MSFT, TSLA)
