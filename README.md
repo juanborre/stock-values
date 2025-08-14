@@ -22,23 +22,20 @@ No API key required - Yahoo Finance provides free access to stock quotes!
 ## Usage with Just
 
 ```bash
-# Build the project
-just build
-
 # Run with your own stock symbols
 just run "AAPL,MSFT,SHOP.TO"
 
-# Run with Canadian ETFs example
-just run-example
-
-# Run with US stocks
-just run-us
-
-# Run with mixed markets
-just run-mixed
-
 # Run with a large portfolio
 just run "AX-UN.TO,BANK.TO,BEP-UN.TO,BOND.TO,CAE.TO,CASH.TO"
+
+# Check code without building
+just check
+
+# Clean build artifacts
+just clean
+
+# Tag a version (triggers Windows build)
+just tag 1.0.0
 
 # Show all available commands
 just help
@@ -88,6 +85,8 @@ XIC.TO,32.15
 ## Features
 
 - ✅ **Free access** to stock quotes worldwide
+- ✅ **CSV output format** - easy to pipe to files or other tools
+- ✅ **Error handling** - shows errors to stderr, clean CSV to stdout
 - ✅ **Canadian stocks** supported (TSX, .TO suffix)
 - ✅ **US stocks** supported (NYSE, NASDAQ, AMEX)
 - ✅ **Real-time pricing** data
