@@ -19,7 +19,7 @@ A Rust command-line tool for fetching stock prices (including Canadian ETFs) usi
 ### Key Dependencies
 ```toml
 tokio = { version = "1.0", features = ["full"] }    # Async runtime
-yahoo_finance_api = "2.0"                           # Yahoo Finance client  
+yahoo_finance_api = "2.0"                           # Yahoo Finance client
 dotenvy = "0.15"                                     # Environment variable loading (unused in main code)
 ```
 
@@ -46,13 +46,14 @@ stock-values/
 ### Main Application Flow (`/Users/juan/transit/stock-values/src/main.rs`)
 1. **Command Line Parsing**: Accepts comma-separated stock symbols as arguments
 2. **Yahoo Finance Connection**: Creates connector without requiring API keys
-3. **Sequential Data Fetching**: Iterates through symbols, fetches latest quotes one by one
-4. **Error Handling**: Separates successful results from errors
+3. **Concurrent Data Fetching**: Spawns async tasks to fetch all symbols in parallel using tokio::spawn
+4. **Result Collection**: Awaits all tasks to complete and separates successful results from errors
 5. **Output Generation**: Prints errors to stderr first, then CSV data to stdout
 
 ### Key Features
 - ✅ **Free API Access**: Uses Yahoo Finance without authentication
-- ✅ **Multi-symbol Support**: Batch processing of stock symbols
+- ✅ **Multi-symbol Support**: Concurrent batch processing of stock symbols
+- ✅ **Parallel Fetching**: Uses tokio::spawn for concurrent API requests
 - ✅ **Error Isolation**: Clean CSV output with errors sent to stderr
 - ✅ **International Markets**: US, Canadian (.TO), and other global markets
 - ✅ **Real-time Data**: Latest closing prices
@@ -61,9 +62,9 @@ stock-values/
 ### Input/Output Format
 ```bash
 # Input
-./stocks-values "AAPL,MSFT,SHOP.TO"
+./stock-values "AAPL,MSFT,SHOP.TO"
 
-# Errors to stderr (if any) 
+# Errors to stderr (if any)
 Error fetching INVALID: Invalid symbol
 
 # Output to stdout
@@ -90,7 +91,7 @@ just help                   # Show all commands (just --list)
 just build-windows          # Docker-based Windows build using rust:1.85 container
 just package-windows        # Package Windows binary to dist/
 
-# Release management  
+# Release management
 just tag 1.0.0              # Tag version (triggers GitHub Actions)
 just github-status          # Show GitHub Actions URL
 ```
@@ -111,7 +112,7 @@ cargo clean                 # Clean build artifacts
 
 ## 🔄 CI/CD Pipeline
 
-### GitHub Actions (`/Users/juan/transit/stocks-values/.github/workflows/build.yml`)
+### GitHub Actions (`/Users/juan/transit/stock-values/.github/workflows/build.yml`)
 - **Trigger**: Git tags matching `v*` pattern or manual dispatch
 - **Platform**: Windows-latest runner
 - **Target**: `x86_64-pc-windows-msvc`
@@ -120,7 +121,7 @@ cargo clean                 # Clean build artifacts
 
 ### Cross-compilation Strategy
 1. **Local Development**: Native builds on macOS/Linux
-2. **Windows Distribution**: 
+2. **Windows Distribution**:
    - GitHub Actions (recommended): Tag-triggered builds
    - Docker Alternative: Local cross-compilation using `rust:1.85` container
 
@@ -159,7 +160,7 @@ cargo clean                 # Clean build artifacts
 3. **Logging**: Consider structured logging for better debugging
 4. **Caching**: Add optional caching for repeated symbol requests
 5. **Validation**: Input validation for stock symbol formats
-6. **Concurrency**: Parallel API requests instead of sequential processing
+6. **Rate Limiting**: Add configurable rate limiting for API requests
 
 ### Security Considerations
 - **Input Sanitization**: Basic symbol parsing without validation
@@ -174,7 +175,7 @@ just run "AAPL,MSFT,SHOP.TO"
 
 # Production
 cargo build --release
-./target/release/stocks-values "AAPL,MSFT,SHOP.TO"
+./target/release/stock-values "AAPL,MSFT,SHOP.TO"
 ```
 
 ### Cross-platform Distribution
@@ -190,8 +191,8 @@ cargo build --release
 ## 📊 Technical Specifications
 
 ### Performance Characteristics
-- **Memory**: Minimal heap usage, vector-based result collection
-- **Network**: Sequential API calls (room for parallelization improvement)
+- **Memory**: Minimal heap usage with Arc-shared provider, vector-based result collection
+- **Network**: Concurrent API calls using tokio::spawn for improved performance
 - **CPU**: Lightweight JSON parsing and CSV formatting
 - **Dependencies**: Minimal dependency footprint with tokio and yahoo_finance_api
 

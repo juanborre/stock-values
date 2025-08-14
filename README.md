@@ -1,4 +1,4 @@
-# stocks-values
+# stock-values
 
 A Rust command-line tool for fetching stock prices (including Canadian ETFs) using the Yahoo Finance API.
 
@@ -8,7 +8,7 @@ A Rust command-line tool for fetching stock prices (including Canadian ETFs) usi
    ```bash
    # macOS
    brew install just
-   
+
    # Other platforms: https://github.com/casey/just
    ```
 
@@ -50,7 +50,7 @@ Run the program with comma-separated stock symbols:
 cargo run -- FIU.TO,GDV.TO
 
 # Using the built binary
-./target/release/stocks-values FIU.TO,GDV.TO
+./target/release/stock-values FIU.TO,GDV.TO
 ```
 
 ### Examples
@@ -102,7 +102,7 @@ XIC.TO,32.15
 ### GitHub Actions (Recommended)
 1. Tag a version: `just tag 1.0.0`
 2. GitHub Actions automatically builds Windows binary
-3. Download from: `https://github.com/YOUR_USERNAME/stocks-values/actions`
+3. Download from: `https://github.com/YOUR_USERNAME/stock-values/actions`
 
 ### Local Docker Build (Alternative)
 ```bash

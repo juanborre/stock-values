@@ -27,8 +27,8 @@ build-windows:
 # Package Windows binary (run after build-windows)
 package-windows:
     mkdir -p dist
-    cp target/x86_64-pc-windows-gnu/release/stocks-values.exe dist/
-    echo "Windows binary created at: dist/stocks-values.exe"
+    cp target/x86_64-pc-windows-gnu/release/stock-values.exe dist/
+    echo "Windows binary created at: dist/stock-values.exe"
     echo "You can send this file to your friend!"
 
 # Tag a new version (triggers GitHub Actions build)
@@ -39,7 +39,7 @@ tag version:
 
 # Show GitHub Actions status (if repo is on GitHub)
 github-status:
-    @echo "Check GitHub Actions at: https://github.com/YOUR_USERNAME/stocks-values/actions"
+    @echo "Check GitHub Actions at: https://github.com/YOUR_USERNAME/stock-values/actions"
     @echo "Download Windows binary from the Actions artifacts"
 
 # Show help

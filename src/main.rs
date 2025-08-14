@@ -1,4 +1,5 @@
 use std::env;
+use std::sync::Arc;
 use yahoo_finance_api as yahoo;
 
 #[tokio::main]
@@ -18,22 +19,37 @@ async fn main() {
 
     match provider {
         Ok(provider) => {
+            let provider = Arc::new(provider);
+            let mut handles = Vec::new();
+
+            // Create concurrent tasks for each symbol
+            for symbol in symbols {
+                let provider_clone = Arc::clone(&provider);
+                let symbol_owned = symbol.to_string();
+                
+                let handle = tokio::spawn(async move {
+                    match provider_clone.get_latest_quotes(&symbol_owned, "1d").await {
+                        Ok(response) => match response.last_quote() {
+                            Ok(quote) => Ok((symbol_owned, quote.close)),
+                            Err(_) => Err(format!("No quote data found for {}", symbol_owned)),
+                        },
+                        Err(e) => Err(format!("Error fetching {}: {}", symbol_owned, e)),
+                    }
+                });
+                handles.push(handle);
+            }
+
+            // Wait for all tasks to complete
             let mut results = Vec::new();
             let mut errors = Vec::new();
 
-            for symbol in symbols {
-                match provider.get_latest_quotes(symbol, "1d").await {
-                    Ok(response) => match response.last_quote() {
-                        Ok(quote) => {
-                            results.push((symbol, quote.close));
-                        }
-                        Err(_) => {
-                            errors.push(format!("No quote data found for {}", symbol));
-                        }
+            for handle in handles {
+                match handle.await {
+                    Ok(task_result) => match task_result {
+                        Ok((symbol, price)) => results.push((symbol, price)),
+                        Err(error_msg) => errors.push(error_msg),
                     },
-                    Err(e) => {
-                        errors.push(format!("Error fetching {}: {}", symbol, e));
-                    }
+                    Err(e) => errors.push(format!("Task error: {}", e)),
                 }
             }
 
