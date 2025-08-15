@@ -1,19 +1,26 @@
-use std::env;
+use clap::Parser;
+use std::fs::File;
+use std::io::Write;
 use std::sync::Arc;
 use yahoo_finance_api as yahoo;
 
+#[derive(Parser)]
+#[command(name = "stock-values")]
+#[command(about = "A Rust command-line tool for fetching stock prices using Yahoo Finance API")]
+#[command(version = "0.1.0")]
+struct Args {
+    #[arg(help = "Comma-separated list of stock symbols (e.g., AAPL,MSFT,SHOP.TO)")]
+    symbols: String,
+    
+    #[arg(short, long, help = "Output CSV file path (mandatory)")]
+    output: String,
+}
+
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() < 2 {
-        eprintln!("Usage: {} <comma-separated-symbols>", args[0]);
-        eprintln!("Example: {} FIU.TO,GDV.TO", args[0]);
-        return;
-    }
-
-    let symbols_arg = &args[1];
-    let symbols: Vec<&str> = symbols_arg.split(',').map(|s| s.trim()).collect();
+    let args = Args::parse();
+    
+    let symbols: Vec<&str> = args.symbols.split(',').map(|s| s.trim()).collect();
 
     let provider = yahoo::YahooConnector::new();
 
@@ -53,18 +60,27 @@ async fn main() {
                 }
             }
 
-            // Print errors first
+            // Print errors to stderr
             for error in errors {
                 eprintln!("{}", error);
             }
 
-            println!();
-            println!("CSV data:");
-            println!();
-            // Then print CSV output
-            println!("Symbol,Price");
+            // Write CSV output to file
+            let mut csv_content = String::new();
+            csv_content.push_str("Symbol,Price\n");
             for (symbol, price) in results {
-                println!("{},{:.2}", symbol, price);
+                csv_content.push_str(&format!("{},{:.2}\n", symbol, price));
+            }
+
+            match File::create(&args.output) {
+                Ok(mut file) => {
+                    if let Err(e) = file.write_all(csv_content.as_bytes()) {
+                        eprintln!("Error writing to file {}: {}", args.output, e);
+                    } else {
+                        println!("CSV data written to {}", args.output);
+                    }
+                }
+                Err(e) => eprintln!("Error creating file {}: {}", args.output, e),
             }
         }
         Err(e) => eprintln!("Failed to create Yahoo connector: {}", e),

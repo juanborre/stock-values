@@ -7,3 +7,4 @@ edition = "2024"
 tokio = { version = "1.0", features = ["full"] }
 yahoo_finance_api = "2.0"
 dotenvy = "0.15"
+clap = { version = "4.0", features = ["derive"] }

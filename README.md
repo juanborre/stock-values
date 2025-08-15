@@ -21,13 +21,9 @@ No API key required - Yahoo Finance provides free access to stock quotes!
 
 ## Usage with Just
 
+**Note:** The just commands need to be updated to include the mandatory `--output` parameter.
+
 ```bash
-# Run with your own stock symbols
-just run "AAPL,MSFT,SHOP.TO"
-
-# Run with a large portfolio
-just run "AX-UN.TO,BANK.TO,BEP-UN.TO,BOND.TO,CAE.TO,CASH.TO"
-
 # Check code without building
 just check
 
@@ -43,33 +39,40 @@ just help
 
 ### Direct Usage
 
-Run the program with comma-separated stock symbols:
+Run the program with comma-separated stock symbols and a mandatory output file:
 
 ```bash
-# Using cargo run
-cargo run -- FIU.TO,GDV.TO
+# Show help
+cargo run -- --help
+
+# Using cargo run with output file
+cargo run -- AAPL,MSFT --output prices.csv
 
 # Using the built binary
-./target/release/stock-values FIU.TO,GDV.TO
+./target/release/stock-values FIU.TO,GDV.TO --output portfolio.csv
 ```
 
 ### Examples
 
 ```bash
 # Get prices for Canadian ETFs
-cargo run -- FIU.TO,GDV.TO,XIC.TO
+cargo run -- FIU.TO,GDV.TO,XIC.TO --output etfs.csv
 
 # Single stock
-cargo run -- SHOP.TO
+cargo run -- SHOP.TO --output shopify.csv
 
 # Multiple stocks with spaces (will be trimmed)
-cargo run -- "FIU.TO, GDV.TO, XIC.TO"
+cargo run -- "FIU.TO, GDV.TO, XIC.TO" --output portfolio.csv
+
+# Using short form of output flag
+cargo run -- AAPL,MSFT -o tech_stocks.csv
 ```
 
 ## Output
 
-The program outputs CSV format with any errors shown first:
+The program writes CSV format to the specified file with any errors shown to stderr:
 
+**File content (e.g., portfolio.csv):**
 ```
 Symbol,Price
 FIU.TO,25.43
@@ -77,16 +80,23 @@ GDV.TO,18.72
 XIC.TO,32.15
 ```
 
+**Console output:**
+```
+CSV data written to portfolio.csv
+```
+
 ## Dependencies
 
 - **yahoo_finance_api**: Rust client for Yahoo Finance API
 - **tokio**: Async runtime
+- **clap**: Command-line argument parsing with help generation
 
 ## Features
 
 - ✅ **Free access** to stock quotes worldwide
-- ✅ **CSV output format** - easy to pipe to files or other tools
-- ✅ **Error handling** - shows errors to stderr, clean CSV to stdout
+- ✅ **CSV file output** - writes data to specified file
+- ✅ **Command-line help** - built-in help and version information
+- ✅ **Error handling** - shows errors to stderr, clean CSV to file
 - ✅ **Canadian stocks** supported (TSX, .TO suffix)
 - ✅ **US stocks** supported (NYSE, NASDAQ, AMEX)
 - ✅ **Real-time pricing** data
