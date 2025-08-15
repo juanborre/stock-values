@@ -1,6 +1,10 @@
-# Run with custom stock symbols (pass as argument)
-run symbols:
-    cargo run -- "{{symbols}}"
+# Run with custom stock symbols and output file
+run symbols output="stock-prices.csv":
+    cargo run -- "{{symbols}}" --output "{{output}}"
+
+# Show help
+show-help:
+    cargo run -- --help
 
 # Clean build artifacts
 clean:

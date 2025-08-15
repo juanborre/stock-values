@@ -21,6 +21,7 @@ A Rust command-line tool for fetching stock prices (including Canadian ETFs) usi
 tokio = { version = "1.0", features = ["full"] }    # Async runtime
 yahoo_finance_api = "2.0"                           # Yahoo Finance client
 dotenvy = "0.15"                                     # Environment variable loading (unused in main code)
+clap = { version = "4.0", features = ["derive"] }   # Command-line argument parsing
 ```
 
 ## 📁 Project Structure
@@ -44,33 +45,38 @@ stock-values/
 ## 🔧 Core Functionality
 
 ### Main Application Flow (`/Users/juan/transit/stock-values/src/main.rs`)
-1. **Command Line Parsing**: Accepts comma-separated stock symbols as arguments
+1. **Command Line Parsing**: Uses clap to parse stock symbols and mandatory output file path
 2. **Yahoo Finance Connection**: Creates connector without requiring API keys
 3. **Concurrent Data Fetching**: Spawns async tasks to fetch all symbols in parallel using tokio::spawn
 4. **Result Collection**: Awaits all tasks to complete and separates successful results from errors
-5. **Output Generation**: Prints errors to stderr first, then CSV data to stdout
+5. **File Output Generation**: Writes CSV data to specified output file, prints errors to stderr
 
 ### Key Features
 - ✅ **Free API Access**: Uses Yahoo Finance without authentication
 - ✅ **Multi-symbol Support**: Concurrent batch processing of stock symbols
 - ✅ **Parallel Fetching**: Uses tokio::spawn for concurrent API requests
-- ✅ **Error Isolation**: Clean CSV output with errors sent to stderr
+- ✅ **Error Isolation**: Clean CSV output to file with errors sent to stderr
+- ✅ **Command-line Interface**: Built-in help, version, and argument validation
+- ✅ **File Output**: Mandatory output file parameter for CSV data
 - ✅ **International Markets**: US, Canadian (.TO), and other global markets
 - ✅ **Real-time Data**: Latest closing prices
 - ✅ **Cross-platform**: Windows, macOS, Linux support
 
 ### Input/Output Format
 ```bash
-# Input
-./stock-values "AAPL,MSFT,SHOP.TO"
+# Show help
+./stock-values --help
+
+# Input with mandatory output file
+./stock-values "AAPL,MSFT,SHOP.TO" --output prices.csv
 
 # Errors to stderr (if any)
 Error fetching INVALID: Invalid symbol
 
-# Output to stdout
+# Console output
+CSV data written to prices.csv
 
-CSV data:
-
+# File content (prices.csv)
 Symbol,Price
 AAPL,175.43
 MSFT,420.15
@@ -80,9 +86,10 @@ SHOP.TO,85.32
 ## 🛠️ Development Workflow
 
 ### Just Task Runner Commands (`/Users/juan/transit/stock-values/justfile`)
+**Note:** The `just run` command needs to be updated to include the mandatory `--output` parameter.
+
 ```bash
 # Core development commands
-just run "AAPL,MSFT"        # Run with symbols
 just check                  # Check code without building
 just clean                  # Clean build artifacts
 just help                   # Show all commands (just --list)
@@ -98,10 +105,11 @@ just github-status          # Show GitHub Actions URL
 
 ### Standard Cargo Commands
 ```bash
-cargo run -- "AAPL,MSFT"   # Direct cargo execution
-cargo check                 # Fast syntax/type checking
-cargo build --release       # Optimized production build
-cargo clean                 # Clean build artifacts
+cargo run -- --help                           # Show help
+cargo run -- "AAPL,MSFT" --output data.csv   # Direct cargo execution
+cargo check                                   # Fast syntax/type checking
+cargo build --release                         # Optimized production build
+cargo clean                                   # Clean build artifacts
 ```
 
 ### No Testing Infrastructure
@@ -170,12 +178,15 @@ cargo clean                 # Clean build artifacts
 
 ### Local Usage
 ```bash
+# Show help
+cargo run -- --help
+
 # Development
-just run "AAPL,MSFT,SHOP.TO"
+cargo run -- "AAPL,MSFT,SHOP.TO" --output portfolio.csv
 
 # Production
 cargo build --release
-./target/release/stock-values "AAPL,MSFT,SHOP.TO"
+./target/release/stock-values "AAPL,MSFT,SHOP.TO" --output portfolio.csv
 ```
 
 ### Cross-platform Distribution
@@ -202,9 +213,10 @@ cargo build --release
 - 🌍 International: Various global exchanges supported by Yahoo Finance
 
 ### Data Format
-- **Input**: Comma-separated stock symbols with optional whitespace
-- **Output**: Standard CSV with Symbol,Price headers
+- **Input**: Comma-separated stock symbols with optional whitespace + mandatory output file path
+- **Output**: Standard CSV file with Symbol,Price headers
 - **Precision**: 2 decimal places for prices
 - **Encoding**: UTF-8 text output
+- **Console**: Success confirmation message or error details
 
 This codebase represents a focused, well-structured tool for stock price fetching with good cross-platform support and a clear development workflow using modern Rust practices.
